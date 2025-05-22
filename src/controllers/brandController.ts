@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Brand from "../models/Brands";
 import cloudinary from "../utils/cloudinary";
+import { Express } from 'express';
 
 // Upload brand image to Cloudinary
 const uploadToCloudinary = (file: Express.Multer.File): Promise<string> => {

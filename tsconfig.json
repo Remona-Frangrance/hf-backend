@@ -1,14 +1,18 @@
 {
     "compilerOptions": {
-      "target": "ES6",
-      "module": "CommonJS",
+
       "outDir": "./dist",
       "rootDir": "./src",
-      "strict": true,
+     
       "noImplicitAny": true,
-    "esModuleInterop": true,
+   
     "skipLibCheck": true,
-      "resolveJsonModule": true
+      "resolveJsonModule": true,
+       "types": ["node", "express", "bcryptjs", "jsonwebtoken"],
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "ES2017",
+    "strict": true
     },
     "include": ["src", "server.ts"],
     "scripts": {
