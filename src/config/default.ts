@@ -1,11 +1,15 @@
-export default {
-    port: 5000,
-    mongoUri: "mongodb+srv://dennyremona:dennyremona@cluster0.jpvzj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-    jwtSecret: "8f2b1a4e6d9c7f0a123456789abcdef0123456789abcdef0123456789abcdef",
-    cloudinary: {
-      cloudName: "danqiwqgc",
-      apiKey: "158797961797196",
-      apiSecret: "erRxsA1KZx3QkyHMnuHHNJ_tMQA"
-    }
-  };
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
+export default {
+  port: process.env.PORT ? Number(process.env.PORT) : 5000,
+  mongoUri: process.env.MONGO_URI || "",
+  jwtSecret: process.env.JWT_SECRET || "",
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || "",
+    apiKey: process.env.CLOUDINARY_API_KEY || "",
+    apiSecret: process.env.CLOUDINARY_API_SECRET || ""
+  }
+};
