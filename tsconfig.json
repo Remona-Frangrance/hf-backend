@@ -1,20 +1,18 @@
 {
     "compilerOptions": {
-
-      "outDir": "./dist",
-      "rootDir": "./src",
-     
-      "noImplicitAny": true,
-   
-    "skipLibCheck": true,
+      "rootDir": "./src",    
+      "noImplicitAny": true,   
       "resolveJsonModule": true,
        "types": ["node", "express", "bcryptjs", "jsonwebtoken"],
+    "strict": true,
+    "target": "ES6",
     "module": "commonjs",
+    "outDir": "./dist",
     "esModuleInterop": true,
-    "target": "ES2017",
-    "strict": true
+    "skipLibCheck": true
     },
     "include": ["src", "server.ts"],
+    "exclude": ["node_modules"],
     "scripts": {
   "start": "tsc && node dist/index.js",
   "dev": "ts-node-dev --respawn src/index.ts"
