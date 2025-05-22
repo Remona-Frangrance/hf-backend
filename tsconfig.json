@@ -1,19 +1,18 @@
 {
-    "compilerOptions": {
-      "rootDir": "./src",    
-      "noImplicitAny": true,   
-      "resolveJsonModule": true,
-        "types": [] ,
-          "typeRoots": ["./node_modules/@types"],
-    "strict": true,
+   "compilerOptions": {
     "target": "ES6",
     "module": "commonjs",
     "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
-    },
-    "include": ["src", "server.ts"],
-    "exclude": ["node_modules"],
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "moduleResolution": "node"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"],
     "scripts": {
   "start": "tsc && node dist/index.js",
   "dev": "ts-node-dev --respawn src/index.ts"
