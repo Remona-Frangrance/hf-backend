@@ -1,5 +1,5 @@
 {
-   "compilerOptions": {
+  "compilerOptions": {
     "target": "ES6",
     "module": "commonjs",
     "outDir": "./dist",
@@ -9,15 +9,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["node"],
-    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "typeRoots": ["./node_modules/@types"],
     "moduleResolution": "node"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules"],
-    "scripts": {
-  "start": "tsc && node dist/index.js",
-  "dev": "ts-node-dev --respawn src/index.ts"
+  "exclude": ["node_modules"]
 }
-
-  }
-  
