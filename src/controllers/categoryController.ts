@@ -59,15 +59,35 @@ export const getAllCategories = async (_req: Request, res: Response) => {
 // Update
 export const updateCategory = async (req: Request, res: Response) => {
   try {
+     console.log('req.file:', req.file);
     const { name, description } = req.body;
     const file = req.file as Express.Multer.File;
     const categoryId = req.params.id;
 
-    let updateData: any = { name, description };
+    const updateData: any = { name, description };
 
-    if (file?.path) {
-      const result = await cloudinary.uploader.upload(file.path);
-      updateData.coverImage = result.secure_url;
+    if (file?.buffer) {
+      // Upload using stream with buffer (like in createCategory)
+    const uploadToCloudinary = (): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "categories" },
+      (error, result) => {
+        if (error || !result) {
+          console.error("Cloudinary upload error:", error);
+          reject(error);
+        } else {
+          console.log("Cloudinary upload success:", result.secure_url);
+          resolve(result.secure_url);
+        }
+      }
+    );
+    stream.end(file.buffer); // <-- this must be executed
+  });
+};
+
+      const imageUrl = await uploadToCloudinary();
+      updateData.coverImage = imageUrl;
     }
 
     const updated = await Category.findByIdAndUpdate(categoryId, updateData, {
@@ -76,9 +96,11 @@ export const updateCategory = async (req: Request, res: Response) => {
 
     res.status(200).json(updated);
   } catch (error: any) {
+    console.error("Category update error:", error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Delete
 export const deleteCategory = async (req: Request, res: Response) => {

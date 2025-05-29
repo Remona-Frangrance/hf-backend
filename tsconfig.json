@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+     "types": ["node"],
     "target": "ES6",
     "module": "commonjs",
     "outDir": "./dist",
@@ -8,7 +9,6 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node"],
     "typeRoots": ["./node_modules/@types"],
     "moduleResolution": "node"
   },

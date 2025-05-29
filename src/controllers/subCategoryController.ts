@@ -101,9 +101,15 @@ export const getSubcategory = async (req: Request, res: Response): Promise<void>
 // Update Subcategory - Handles multiple image uploads
 export const updateSubcategory = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, description, category } = req.body;
-    const subcategoryId = req.params.id;
+    const {
+      name,
+      description,
+      category,
+      keepExistingImages = 'true',
+      existingImagesToKeep = []
+    } = req.body;
 
+    const subcategoryId = req.params.id;
     const subcategory = await Subcategory.findById(subcategoryId);
     if (!subcategory) {
       res.status(404).json({ error: "Subcategory not found" });
@@ -111,10 +117,9 @@ export const updateSubcategory = async (req: Request, res: Response): Promise<vo
     }
 
     const updateData: any = { name, description, category };
-
     const files = req.files as Express.Multer.File[] | Express.Multer.File | undefined;
 
-    // Define the function for uploading to Cloudinary
+    // Upload new images
     const uploadToCloudinary = (files: Express.Multer.File[]): Promise<string[]> => {
       return Promise.all(files.map((file) => {
         return new Promise<string>((resolve, reject) => {
@@ -133,28 +138,66 @@ export const updateSubcategory = async (req: Request, res: Response): Promise<vo
       }));
     };
 
+    let newImageUrls: string[] = [];
     if (files && (Array.isArray(files) || files)) {
-      // Handle multiple or single image upload
-      const imageUrls = Array.isArray(files) ? await uploadToCloudinary(files) : await uploadToCloudinary([files]);
-      updateData.images = imageUrls; // Update the images array
+      newImageUrls = Array.isArray(files)
+        ? await uploadToCloudinary(files)
+        : await uploadToCloudinary([files]);
     }
 
-    if (files && (Array.isArray(files) || files)) {
-      // If new images were uploaded, update cover image
-      updateData.coverImage = updateData.images[0]; // First image as cover image
+    const shouldKeepExisting = keepExistingImages === 'true';
+    const existingImagesArray = Array.isArray(existingImagesToKeep)
+      ? existingImagesToKeep
+      : [existingImagesToKeep];
+
+    if (shouldKeepExisting) {
+      // Delete images not in existingImagesToKeep
+      const imagesToDelete = subcategory.images.filter(img => !existingImagesArray.includes(img));
+      await Promise.all(imagesToDelete.map(async (imageUrl) => {
+        const publicId = imageUrl.split('/').pop()?.split('.')[0];
+        if (publicId) {
+          await cloudinary.uploader.destroy(`subcategories/${publicId}`);
+        }
+      }));
+
+      updateData.images = [...existingImagesArray, ...newImageUrls];
+    } else {
+      // Delete all old images
+      await Promise.all((subcategory.images || []).map(async (imageUrl) => {
+        const publicId = imageUrl.split('/').pop()?.split('.')[0];
+        if (publicId) {
+          await cloudinary.uploader.destroy(`subcategories/${publicId}`);
+        }
+      }));
+
+      updateData.images = newImageUrls;
     }
 
-    const updatedSubcategory = await Subcategory.findByIdAndUpdate(subcategoryId, updateData, { new: true });
+    // Set new cover image if needed
+    const allImages = updateData.images || [];
+    if (!allImages.includes(subcategory.coverImage)) {
+      updateData.coverImage = allImages[0] || null;
+    }
+
+    const updatedSubcategory = await Subcategory.findByIdAndUpdate(
+      subcategoryId,
+      updateData,
+      { new: true }
+    ).populate("category");
+
     res.status(200).json(updatedSubcategory);
   } catch (error: any) {
+    console.error("Error updating subcategory:", error);
     res.status(500).json({ error: "Failed to update subcategory" });
   }
 };
+
 // Delete Subcategory - Handles image deletion from Cloudinary as well
 export const deleteSubcategory = async (req: Request, res: Response): Promise<void> => {
   try {
     const subcategoryId = req.params.id;
     const subcategory = await Subcategory.findById(subcategoryId);
+
     if (!subcategory) {
       res.status(404).json({ error: "Subcategory not found" });
       return;
@@ -162,17 +205,41 @@ export const deleteSubcategory = async (req: Request, res: Response): Promise<vo
 
     // Delete images from Cloudinary
     await Promise.all(subcategory.images.map(async (imageUrl) => {
-      const publicId = imageUrl.split('/').pop()?.split('.')[0];
-      if (publicId) {
-        await cloudinary.uploader.destroy(publicId); // Delete from Cloudinary
-      }
+      const publicId = getCloudinaryPublicId(imageUrl);
+      console.log("🚀 ~ awaitPromise.all ~ publicId:", publicId)
+       if (publicId) {
+    const result = await cloudinary.uploader.destroy(publicId);
+    console.log("🗑️ Cloudinary delete result:", result);
+  } else {
+    console.log("⚠️ Failed to extract publicId from:", imageUrl);
+  }
     }));
 
     // Delete the subcategory
     await Subcategory.findByIdAndDelete(subcategoryId);
     res.json({ message: "Subcategory and all related images deleted" });
+
   } catch (error: any) {
+    console.error(error);
     res.status(500).json({ error: "Failed to delete subcategory" });
+  }
+};
+
+const getCloudinaryPublicId = (imageUrl: string): string | null => {
+  try {
+    const url = new URL(imageUrl);
+    const pathname = url.pathname; // e.g., /demo/image/upload/v1234567890/folder/image.jpg
+    const parts = pathname.split('/');
+    const uploadIndex = parts.indexOf('upload');
+    if (uploadIndex === -1) return null;
+
+    // Get everything after 'upload/' and before extension
+    const publicIdWithVersion = parts.slice(uploadIndex + 1).join('/');
+    const publicId = publicIdWithVersion.replace(/\.[^/.]+$/, ""); // remove extension
+    console.log("🚀 ~ publicId:", publicId)
+    return publicId;
+  } catch {
+    return null;
   }
 };
 
