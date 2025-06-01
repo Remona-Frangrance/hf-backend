@@ -10,6 +10,7 @@ import categoryRoutes from "./routes/categoryRoutes";
 import subcategoryRoutes from "./routes/subcategoryRoutes";
 import brandRoutes from "./routes/brandRoutes";
 import adminRoutes from './routes/adminRoutes';
+import galleryRoutes from './routes/gallaryRoutes';
 
 dotenv.config();
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/subcategories", subcategoryRoutes);
 app.use("/api/brands", brandRoutes);
+app.use("/api/gallery", galleryRoutes);
 
 app.use('/admin', adminRoutes);
 
