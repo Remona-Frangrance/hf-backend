@@ -47,14 +47,36 @@ import cloudinary from '../utils/cloudinary';
   };
 
 // Read All
-export const getAllCategories = async (_req: Request, res: Response) => {
+// Read All (with pagination, lean, field selection, and timing logs)
+export const getAllCategories = async (req: Request, res: Response) => {
   try {
-    const categories = await Category.find();
-    res.status(200).json(categories);
+    console.time("Fetch categories");
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Fetch only necessary fields: name, description, coverImage
+    const [categories, total] = await Promise.all([
+      Category.find({}, 'name description coverImage').lean().skip(skip).limit(limit),
+      Category.countDocuments()
+    ]);
+
+    console.timeEnd("Fetch categories");
+
+    res.status(200).json({
+      success: true,
+      data: categories,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching categories:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 // Update
 export const updateCategory = async (req: Request, res: Response) => {
