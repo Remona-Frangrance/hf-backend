@@ -47,10 +47,29 @@ import cloudinary from '../utils/cloudinary';
   };
 
 // Read All
-export const getAllCategories = async (_req: Request, res: Response) => {
+export const getAllCategories = async (req: Request, res: Response) => {
   try {
-    const categories = await Category.find();
-    res.status(200).json(categories);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 8; // Default to 8 items per page
+    const skip = (page - 1) * limit;
+    
+    const [categories, total] = await Promise.all([
+      Category.find()
+        .skip(skip)
+        .limit(limit)
+        .select('name coverImage description'), // Only get needed fields
+      Category.countDocuments()
+    ]);
+    
+    res.status(200).json({
+      data: categories,
+      pagination: {
+        page,
+        limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

@@ -11,6 +11,7 @@ import subcategoryRoutes from "./routes/subcategoryRoutes";
 import brandRoutes from "./routes/brandRoutes";
 import adminRoutes from './routes/adminRoutes';
 import galleryRoutes from './routes/gallaryRoutes';
+import contactRoutes from "./routes/contactRoute";
 
 dotenv.config();
 const app = express();
@@ -33,6 +34,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/subcategories", subcategoryRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/gallery", galleryRoutes);
+app.use("/api", contactRoutes);
 
 app.use('/admin', adminRoutes);
 

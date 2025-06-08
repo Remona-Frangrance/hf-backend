@@ -1,6 +1,7 @@
 // src/routes/adminRoutes.ts
 import express, { Request, Response, Router } from 'express';
 import jwt from 'jsonwebtoken';
+import { getMetrics } from '../controllers/metricsController';
 
 const router: Router = express.Router();
 
@@ -26,5 +27,8 @@ router.post('/login', (req: Request, res: Response): void => {
 
   res.status(401).json({ message: 'Invalid admin credentials' });
 });
+
+router.get('/metrics', getMetrics);
+
 
 export default router;
